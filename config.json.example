@@ -11,6 +11,8 @@
     "bitbucket": {
         "user": "",
         "password": "",
-        "team": null
+        "team": null,
+        "protocol": "https",
+        "url": "localhost:7443"
     }
 }

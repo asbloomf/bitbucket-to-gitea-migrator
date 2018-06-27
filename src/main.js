@@ -15,7 +15,7 @@ try {
 // Base REST endpoints
 var endpoints = {
     "bitbucket": {
-        "all": "https://api.bitbucket.org/2.0/repositories/" + conf.bitbucket.user
+        "all": conf.bitbucket.protocol + "://" + conf.bitbucket.url + "/rest/api/1.0/repos"
     },
     "gogs": {
         "migrate": conf.gogs.protocol + "://" + conf.gogs.url + "/api/v1/repos/migrate"
@@ -24,7 +24,7 @@ var endpoints = {
 
 // Allows for getting all repos from a team instead of just a user
 if (conf.bitbucket.team !== null) {
-    endpoints.bitbucket.all = "https://api.bitbucket.org/2.0/repositories/" + conf.bitbucket.team;
+    endpoints.bitbucket.all = conf.bitbucket.protocol + "://" + conf.bitbucket.url + "/rest/api/1.0/projects/" + conf.bitbucket.team + "/repos";
 }
 
 // Load the Migrator

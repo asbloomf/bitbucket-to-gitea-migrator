@@ -1,6 +1,8 @@
 var request = require('request'),
     Q = require('q');
 
+//request.debug = true;
+
 function Migrator(endpoints, conf) {
     this.endpoints = endpoints;
     this.conf = conf;
@@ -30,7 +32,7 @@ Migrator.prototype.getAllRepos = function() {
     return deferred.promise;
 }
 
-Migrator.prototype.getRepoSet = function(uri, deferred) {
+Migrator.prototype.getRepoSet = function(uri, deferred, start=0) {
     var bb = this.conf.bitbucket,
         gogs = this.conf.gogs,
         realUser = bb.team === null ? bb.user : bb.team;
@@ -39,7 +41,7 @@ Migrator.prototype.getRepoSet = function(uri, deferred) {
 
     request({
         method: 'GET',
-        uri: uri,
+        uri: uri + "?start=" + start,
         auth: {
             'user': bb.user,
             'pass': bb.password,
@@ -56,11 +58,17 @@ Migrator.prototype.getRepoSet = function(uri, deferred) {
         }
 
         rawData.values.forEach(function(data) {
-            this.repos.push(data.full_name);
+            var href;
+            data.links.clone.forEach(function(c) {
+                if(c.name === "http") href = c.href.replace(bb.user + '@', '');
+            }.bind(this))
+            console.log(href);
+            this.repos.push({name: data.name, slug: data.slug, href: href});
         }.bind(this));
 
-        if (rawData.next) {
-            this.getRepoSet(rawData.next, deferred);
+        if (rawData.nextPageStart) {
+            console.log("get next page");
+            this.getRepoSet(uri, deferred, rawData.nextPageStart);
         } else {
             deferred.resolve(this.repos);
         }
@@ -79,18 +87,19 @@ Migrator.prototype.migrateRepos = function(repos) {
 Migrator.prototype.migrate = function(repos, deferred) {
     if (repos.length !== 0) {
         // We want to work with the last repo name
-        var fullName = repos[repos.length - 1],
-            repoName = fullName.replace(this.user + '/', '');
+        var repo = repos[repos.length - 1],
+            repoName = repo.slug,
+            href = repo.href;
 
         // Starts the migration through Gogs API
         var formData = {
-            clone_addr: 'https://bitbucket.org/' + fullName,
+            clone_addr: href,
             auth_username: this.conf.bitbucket.user,
             auth_password: this.conf.bitbucket.password,
             uid: this.conf.gogs.owner_id,
             repo_name: repoName,
             mirror: 'false',
-            private: 'on'
+            private: 'true'
         };
 
         request({
@@ -113,6 +122,7 @@ Migrator.prototype.migrate = function(repos, deferred) {
             this.migrate(repos, deferred);
         }.bind(this));
     } else {
+        console.log('Done');
         deferred.resolve('Done');
     };
 }

@@ -1,4 +1,4 @@
-!! This is a version of bitbucket-to-gogs-migrator by girvo that works with the latest Gitea !!
+!! This is a version of bitbucket-to-gogs-migrator by girvo that works with the latest Gitea and migrates from BitBucket Server instead of BitBucket !!
 !! Original README.md below !!
 
 # BitBucket to Gogs Migration Script
