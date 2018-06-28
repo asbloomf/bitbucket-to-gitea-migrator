@@ -115,7 +115,7 @@ Migrator.prototype.migrate = function(repos, deferred) {
                 process.exit(1);
             }
             console.log(body);
-            console.log("Repository `"+fullName+"` has been migrated");
+            console.log("Repository `"+repoName+"` has been migrated");
 
             // Removes the element from the array, and calls ourself again
             repos.pop();
